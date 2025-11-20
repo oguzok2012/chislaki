@@ -48,7 +48,7 @@ class CmpVector:
             else:
                 print(f"[{i}]: {val.real:.6f} + {val.imag:.6f}i")
 
-
+l = 7
 class Matrix:
     def __init__(self, data: List[List[float]]):
         self.data = data
@@ -224,7 +224,7 @@ def qr_eigenvalues(A: Matrix, eps: float = 1e-6, max_iter: int = 1000) -> Tuple[
     iter_count = 0
     prev = CmpVector([complex(0, 0)] * n)
 
-    for iter_count in range(1, max_iter + 1, 7):
+    for iter_count in range(1, max_iter + 1, l):
         Q, R = householder_qr(Ak)
 
         # A_{k+1} = R * Q
