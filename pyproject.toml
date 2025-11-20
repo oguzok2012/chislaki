@@ -1,0 +1,11 @@
+[tool.poetry]
+name = "chislaki"
+version = "1.0.0"
+authors = ["@alg3bra"]
+
+
+[tool.poetry.dependencies]
+python = "^3.8"
+numpy = "^1.24.0"
+matplotlib = "^3.7.0"
+pyqt6 = "^6.4.0"

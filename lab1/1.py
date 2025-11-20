@@ -94,33 +94,3 @@ print("Определитель:", determinant(A))
 print("Обратная матрица:")
 for row in inverse_gauss(A):
     print(row)
-
-
-
-
-
-
-
-
-
-
-
-
-# print("\n" + "="*50)
-# print("ПРОВЕРКА NUMPY:")
-# print("="*50)
-#
-# A_np = np.array(A)
-# b_np = np.array(b)
-#
-# # Проверка решения
-# x_np = np.linalg.solve(A_np, b_np)
-# print("Решение (numpy):", x_np)
-#
-# # Проверка определителя
-# det_np = np.linalg.det(A_np)
-# print("Определитель (numpy):", det_np)
-#
-# # Проверка обратной матрицы
-# inv_np = np.linalg.inv(A_np)
-# print("Обратная матрица (numpy):")

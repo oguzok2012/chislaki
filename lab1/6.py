@@ -224,7 +224,7 @@ def qr_eigenvalues(A: Matrix, eps: float = 1e-6, max_iter: int = 1000) -> Tuple[
     iter_count = 0
     prev = CmpVector([complex(0, 0)] * n)
 
-    for iter_count in range(1, max_iter + 1):
+    for iter_count in range(1, max_iter + 1, 7):
         Q, R = householder_qr(Ak)
 
         # A_{k+1} = R * Q
@@ -241,7 +241,8 @@ def qr_eigenvalues(A: Matrix, eps: float = 1e-6, max_iter: int = 1000) -> Tuple[
             break
 
         prev = current
-
+    print("\nИтоговая матрица A после QR-алгоритма:")
+    Ak.print_matrix()
     return current, iter_count
 
 
@@ -256,10 +257,24 @@ A_data = [
 A = Matrix(A_data)
 
 print("QR-АЛГОРИТМ С ПРЕОБРАЗОВАНИЕМ ХАУСХОЛДЕРА")
+A_np = np.array(A_data)
+print("Исходная матрица A:")
+print(A_np)
 
 eigenvalues, iterations = qr_eigenvalues(A, eps=0.0001, max_iter=1000)
 
 print(f"Количество итераций: {iterations}")
-print("Собственные значения:")
+
+
+print("\n" + "=" * 60)
+print("\nСобственные значения (по алгоритм):")
 eigenvalues.print_vector()
 
+# Собственные значения через numpy
+eigenvalues_np = np.linalg.eigvals(A_np)
+print("\nСобственные значения (numpy):")
+for i, val in enumerate(eigenvalues_np):
+    if abs(val.imag) < 1e-10:
+        print(f"[{i}]: {val.real:.6f}")
+    else:
+        print(f"[{i}]: {val.real:.6f} + {val.imag:.6f}i")

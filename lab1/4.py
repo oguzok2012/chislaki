@@ -53,7 +53,7 @@ def is_diagonally_dominant(A: List[List[float]]) -> bool:
 def jacobi_method(
         A: List[List[float]],
         b: List[float],
-        eps: float = 1e-4,
+        eps: float = 1e-6,
         max_iter: int = 10000
 ) -> Tuple[List[float], int]:
     n = len(A)
@@ -65,12 +65,23 @@ def jacobi_method(
         A, b = make_diagonally_dominant(A, b)
 
         if not is_diagonally_dominant(A):
-            print("Не удалось достичь строгого диагонального преобладания")
-            print("Метод может не сходиться или сходиться медленно")
+            print("Предупреждение: Не удалось достичь диагонального доминирования")
+            print("Метод может не сходиться")
 
     x_old = [0.0] * n
     x_new = [0.0] * n
     iter_count = 0
+
+    # a11*x1 + a12*x2 + .. + a1n*xn = b1
+    # a21*x1 + a22*x2 + ... + a2n*xn = b2
+    # ...
+    # an1*x1 + an2*x2 + ... + ann*xn = bn
+
+    #   выражаем каждую переменную через остальные
+    # x1 = (b1 - a12*x2 - a13*x3 - .. - a1n*xn) / a11
+    # x2 = (b2 - a21*x1 - a23*x3 - .. - a2n*xn) / a22
+    # ...
+    # xn = (bn - an1*x1 - an2*x2 - ... - an(n-1)*x(n-1)) / ann
 
     while True:
         iter_count += 1

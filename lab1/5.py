@@ -62,8 +62,8 @@ def seidel_method(
         A, b = make_diagonally_dominant(A, b)
 
         if not is_diagonally_dominant(A):
-            print("Предупреждение: Не удалось достичь строгого диагонального преобладания")
-            print("Метод может сходиться медленно или не сходиться")
+            print("Предупреждение: Не удалось достичь диагонального доминирования")
+            print("Метод может сходиться медленно")
 
     x = [0.0] * n
     iter_count = 0
@@ -132,9 +132,7 @@ x, iterations = seidel_method(A, b, eps=0.0001)
 
 print(f"\nРезультаты:")
 print(f"Количество итераций: {iterations}")
-print(f"Решение:")
-for i, val in enumerate(x):
-    print(f"x{i + 1} = {val:.6f}")
+print("Решение системы: ", x)
 
 print(f"\nПроверка решения (подстановка в уравнения):")
 for i in range(len(A)):
