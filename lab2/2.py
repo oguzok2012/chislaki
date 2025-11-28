@@ -162,6 +162,7 @@ def simple_iteration_system(x0, y0, eps, max_iter):
 
     # Шаг 1: Оценка условия сходимости в окрестности начальной точки
     sup_norm = 0.0
+    sup_col_norm = 0.0
     samples = 5
     radius = 0.2
 
@@ -177,15 +178,24 @@ def simple_iteration_system(x0, y0, eps, max_iter):
             )
 
             # Вычисляем норму матрицы (супремум по строкам)
+            # страница 45
             row1_norm = abs(J.a11) + abs(J.a12)
             row2_norm = abs(J.a21) + abs(J.a22)
             max_row_norm = max(row1_norm, row2_norm)
 
+            # Добавляем норму по столбцам
+            col1_norm = abs(J.a11) + abs(J.a21)
+            col2_norm = abs(J.a12) + abs(J.a22)
+            max_col_norm = max(col1_norm, col2_norm)
+
             if max_row_norm > sup_norm:
                 sup_norm = max_row_norm
+            if max_col_norm > sup_col_norm:
+                sup_col_norm = max_col_norm
+
 
     # Формируем сообщение о сходимости
-    if sup_norm < 1.0:
+    if sup_norm < 1.0 and sup_col_norm < 1.0:
         msg = f"✅ sup||Φ'|| ~= {sup_norm:.3f} < 1 — условие сходимости выполнено"
     else:
         msg = f"⚠️ sup||Φ'|| ~= {sup_norm:.3f} >= 1 — сходимость не гарантирована"
@@ -232,6 +242,7 @@ def seidel_system(x0, y0, eps, max_iter):
 
     # Проверка условия сходимости
     sup_norm = 0.0
+    sup_col_norm = 0.0
     samples = 5
     radius = 0.2
 
@@ -251,10 +262,18 @@ def seidel_system(x0, y0, eps, max_iter):
             row2_norm = abs(J.a21) + abs(J.a22)
             max_row_norm = max(row1_norm, row2_norm)
 
+            # Добавляем норму по столбцам
+            col1_norm = abs(J.a11) + abs(J.a21)
+            col2_norm = abs(J.a12) + abs(J.a22)
+            max_col_norm = max(col1_norm, col2_norm)
+
             if max_row_norm > sup_norm:
                 sup_norm = max_row_norm
+            if max_col_norm > sup_col_norm:
+                sup_col_norm = max_col_norm
 
-    if sup_norm < 1.0:
+            # Формируем сообщение о сходимости
+    if sup_norm < 1.0 and sup_col_norm < 1.0:
         msg = f"✅ sup||Φ'|| ~= {sup_norm:.3f} < 1 — условие сходимости выполнено"
     else:
         msg = f"⚠️ sup||Φ'|| ~= {sup_norm:.3f} >= 1 — сходимость не гарантирована"

@@ -2,6 +2,7 @@ import math
 import cmath
 from typing import List, Tuple
 import numpy as np
+l = 7
 
 
 class Vector:
@@ -48,7 +49,7 @@ class CmpVector:
             else:
                 print(f"[{i}]: {val.real:.6f} + {val.imag:.6f}i")
 
-l = 7
+
 class Matrix:
     def __init__(self, data: List[List[float]]):
         self.data = data
@@ -135,35 +136,48 @@ def householder(v: Vector) -> Matrix:
     return H
 
 
-def householder_qr(A: Matrix) -> Tuple[Matrix, Matrix]:
+def householder_qr(A: Matrix, eps: float = 1e-12) -> Tuple[Matrix, Matrix]:
+    """QR-разложение с преобразованиями Хаусхолдера с проверкой нормы """
     n = A.n
     Q = identity(n)
     R = A.copy()
 
-    for k in range(n):
-        # извлекаем k-й столбец матрицы R
-        b = Vector([0.0] * (n - k))
-        for i in range(k, n):
-            b.data[i - k] = R.data[i][k]
+    for k in range(n - 1):
+        # Вектор x из k-го столбца начиная с k-й строки
+        x = Vector([R.data[i][k] for i in range(k, n)])
+        norm_x = frobenius_norm(x)
 
-        # вектор Хаусхолдера
-        v = Vector([0.0] * n)
+        # Проверка
+        if norm_x < eps:
+            continue
+
+        # Вектор Хаусхолдера
+        v_data = [0.0] * n
         for i in range(k):
-            v.data[i] = 0.0
+            v_data[i] = 0.0
 
-        norm_b = frobenius_norm(b)
-        v.data[k] = b.data[0] + sign(b.data[0]) * norm_b
+        # v[0] = x[0] - sign(x[0]) * norm_x
+        v_data[k] = x.data[0] + sign(x.data[0]) * norm_x
 
         for i in range(k + 1, n):
-            v.data[i] = b.data[i - k]
+            v_data[i] = x.data[i - k]
 
-        H = householder(v)
+        v = Vector(v_data)
+        norm_v = frobenius_norm(v)
+
+        # Проверка
+        if norm_v < eps:
+            continue
+
+        # Нормализация вектора v
+        v_normalized = v.scale(1.0 / norm_v)
+
+        H = householder(v_normalized)
 
         # R = H * R
         R = H.multiply(R)
         # Q = Q * H
         Q = Q.multiply(H)
-
 
     return Q, R
 
@@ -187,7 +201,6 @@ def extract_eigenvalues(A: Matrix, eps: float = 1e-12) -> CmpVector:
 
     while i < n:
         if i == n - 1:
-            # последний элемент -  собственное значение
             result.data[i] = complex(A.data[i][i], 0)
             i += 1
             continue
@@ -217,64 +230,85 @@ def cmp_infinity_norm(v: CmpVector) -> float:
     return max(abs(x) for x in v.data)
 
 
+def get_eigenvalues(A: Matrix, eps: float, prev_eigenvalues: CmpVector = None) -> Tuple[CmpVector, bool]:
+    n = A.n
+    eigenvalues = extract_eigenvalues(A, eps)
+
+    if prev_eigenvalues is None:
+        return eigenvalues, False
+
+    # Проверяем сходимость всех собственных значений
+    end = True
+    for i in range(n):
+        if abs(eigenvalues.data[i] - prev_eigenvalues.data[i]) > eps:
+            end = False
+            break
+
+    return eigenvalues, end
+
+
 def qr_eigenvalues(A: Matrix, eps: float = 1e-6, max_iter: int = 1000) -> Tuple[CmpVector, int]:
     n = A.n
     Ak = A.copy()
 
     iter_count = 0
-    prev = CmpVector([complex(0, 0)] * n)
+    prev_eigenvalues = None
+    eigenvalues = None
 
     for iter_count in range(1, max_iter + 1, l):
-        Q, R = householder_qr(Ak)
+        Q, R = householder_qr(Ak, eps)
 
         # A_{k+1} = R * Q
         Ak = R.multiply(Q)
 
-        # собственные значения
-        current = extract_eigenvalues(Ak, eps)
+        # Получаем собственные значения и проверяем сходимость
+        eigenvalues, stop = get_eigenvalues(Ak, eps, prev_eigenvalues)
 
-        # проверка на сходимость
-        diff = current.add(prev.scale(-1))
-        norm_diff = cmp_infinity_norm(diff)
-
-        if norm_diff < eps:
+        if stop:
+            print(f"Сходимость достигнута за {iter_count} итераций")
             break
 
-        prev = current
+        prev_eigenvalues = eigenvalues
+
+    if iter_count == max_iter:
+        print(f"Достигнуто максимальное количество итераций: {max_iter}")
+
     print("\nИтоговая матрица A после QR-алгоритма:")
     Ak.print_matrix()
-    return current, iter_count
+    return eigenvalues, iter_count
 
 
-A_data = [
-    [15, -5, -4, 1, 0],
-    [4, 12, 0, 2, 2],
-    [-2, 3, 7, 5, 5],
-    [11, 5, -4, 5, 3],
-    [1, 3, -5, 1, -2]
-]
+# Основная программа
+if __name__ == "__main__":
+    A_data = [
+        [15, -5, -4, 1, 0],
+        [4, 12, 0, 2, 2],
+        [-2, 3, 7, 5, 5],
+        [11, 5, -4, 5, 3],
+        [1, 3, -5, 1, -2]
+    ]
 
-A = Matrix(A_data)
+    A = Matrix(A_data)
 
-print("QR-АЛГОРИТМ С ПРЕОБРАЗОВАНИЕМ ХАУСХОЛДЕРА")
-A_np = np.array(A_data)
-print("Исходная матрица A:")
-print(A_np)
+    print("QR-АЛГОРИТМ С ПРЕОБРАЗОВАНИЕМ ХАУСХОЛДЕРА")
+    A_np = np.array(A_data)
+    print("Исходная матрица A:")
+    print(A_np)
 
-eigenvalues, iterations = qr_eigenvalues(A, eps=0.0001, max_iter=1000)
+    eigenvalues, iterations = qr_eigenvalues(A, eps=0.0001, max_iter=1000)
 
-print(f"Количество итераций: {iterations}")
+    print(f"Количество итераций: {iterations}")
+
+    print("\n" + "=" * 60)
+    print("\nСобственные значения (по алгоритму):")
+    eigenvalues.print_vector()
 
 
-print("\n" + "=" * 60)
-print("\nСобственные значения (по алгоритм):")
-eigenvalues.print_vector()
-
-# Собственные значения через numpy
-eigenvalues_np = np.linalg.eigvals(A_np)
-print("\nСобственные значения (numpy):")
-for i, val in enumerate(eigenvalues_np):
-    if abs(val.imag) < 1e-10:
-        print(f"[{i}]: {val.real:.6f}")
-    else:
-        print(f"[{i}]: {val.real:.6f} + {val.imag:.6f}i")
+    # Собственные значения через numpy
+    # eigenvalues_np = np.linalg.eigvals(A_np)
+    # print("\nСобственные значения (numpy):")
+    # for i, val in enumerate(eigenvalues_np):
+    #     if abs(val.imag) < 1e-10:
+    #         print(f"[{i}]: {val.real:.6f}")
+    #     else:
+    #         print(f"[{i}]: {val.real:.6f} + {val.imag:.6f}i")

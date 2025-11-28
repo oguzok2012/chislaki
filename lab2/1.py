@@ -32,6 +32,8 @@ def df(x):
 def phi(x, lambda_val):
     return x - lambda_val * f(x)
 
+def phi_derivative_approx(x, lambda_val, h=0.0001):
+    return (phi(x + h, lambda_val) - phi(x - h, lambda_val)) / (2 * h)
 
 def dphi(x, lambda_val):
     return 1 - lambda_val * df(x)
@@ -59,20 +61,29 @@ def simple_iteration_interval(a, b, eps, max_iter):
         lambda_val = -0.1  # двигаемся влево от b к a
         x = b
 
+    # страница 37
+    phi_prime = phi_derivative_approx(x, lambda_val)
+
+    if abs(phi_prime) >= 1:
+        msg = f"|φ'(x0)| ≈ {abs(phi_prime):.6f}. Условие сходимости НЕ выполнено"
+    else:
+        msg = f"|φ'(x0)| ≈ {abs(phi_prime):.6f}. Условие сходимости выполнено"
+
+
     for i in range(max_iter):
         x_new = phi(x, lambda_val)
 
         if math.isnan(x_new):
-            return MethodResult(0, i, False, f"φ(x) неопределена при x={x:.6f}")
+            return MethodResult(0, i, False, f"φ(x) неопределена при x={x:.6f}. {msg}")
         if x_new < a or x_new > b:
             return MethodResult(0, i, False, f"Итерация вышла за границы [{a:.6f}, {b:.6f}]")
 
         if abs(x_new - x) < eps:
-            return MethodResult(x_new, i + 1, True, f"Метод сошёлся")
+            return MethodResult(x_new, i + 1, True, f"Метод сошёлся. {msg}")
 
         x = x_new
 
-    return MethodResult(x, max_iter, False, f"Не сошёлся за {max_iter} итераций, λ={lambda_val}")
+    return MethodResult(x, max_iter, False, f"Не сошёлся за {max_iter} итераций, λ={lambda_val}. {msg}")
 
 
 # Метод Ньютона
@@ -368,3 +379,6 @@ if __name__ == '__main__':
     main_window = MainWindow()
     main_window.show()
     sys.exit(app.exec())
+
+
+# достаточное условие

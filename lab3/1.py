@@ -7,8 +7,8 @@ yi = [-2.3285, -0.7683, -1.2326, 0.4502, 1.0379, 2.9643, 2.8924, 3.3481, 2.7326]
 xStar = 1.493
 
 # Варианты выбора узлов
-quadraticVariant = 2  # 1=LeftInterval, 2=RightInterval
-cubicVariant = 2  # 1=LeftAndTwoRight, 2=Middle, 3=RightAndTwoSides
+quadraticVariant = 1  # 1=LeftInterval, 2=RightInterval
+cubicVariant = 3  # 1=LeftAndTwoRight, 2=Middle, 3=RightAndTwoSides
 
 
 def lagrangeBasis(i, x, xNodes):
